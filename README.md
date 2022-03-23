@@ -13,7 +13,10 @@ The main code was written by Dmitry Ivanov, aspirant in Game Theory and Decision
     + utils - some additional useful functions 
     
 * Helpful notes on file names:
-            + https://github.com/aksyuk/zakupki_gov_ru/blob/master/filenames_description.md#:~:text=%D0%92%D1%81%D0%B5%2B%D1%81%D0%BF%D1%80%D0%B0%D0%B2%D0%BE%D1%87%D0%BD%D0%B8%D0%BA%D0%B8%2B%D0%BF%D0%BE%2B%D0%AD%D0%9F_v42%2B(10.3)%2B(%D0%94%D0%BE%D0%B1%D0%B0%D0%B2%D0%BB%D0%B5%D0%BD%2B%D0%AD%D0%9E%D0%9A).xlsx
+    + https://zakupki.gov.ru/epz/main/public/download/downloadDocument.html?id=33287
+    + https://clck.ru/Ycx7H
+    + https://docs.google.com/document/d/14QeZPaOvUmwK3_ZKwscgGaGDNe6cb2lz/edit?usp=sharing&ouid=103180529918038360903&rtpof=true&sd=true
+            
             
 
 
