@@ -60,7 +60,7 @@ def etl(ftp, coll, update_type, regions=None, regions_start=None, regions_end=No
 
                 for name in zip_names:
                     parse_xml_el(zip_file, name, region_id)  # for electronic auctions
-                    parse_xml(zip_file, name, region_id)  # for usual auctions
+                  #  parse_xml(zip_file, name, region_id)  # for usual auctions
                 zip_file.close()
 
 

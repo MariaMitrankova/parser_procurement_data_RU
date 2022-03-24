@@ -119,7 +119,8 @@ def transform_notifications_el(xml, region_id):
 	document['deliveryTerm'] = retrieve(document['deliveryTerm'], './s:deliveryTerm/text()', str)
 	document['deliveryTerm'] = truncate_text(document['deliveryTerm'], 200)
 	document['electronic'] = True
-	#print(document)
+	document['object'] = retrieve(xml, './s:commonInfo/s:purchaseObjectInfo/text()', str)
+
 	auction_id, = one_row_request("INSERT INTO auctions (region_id, purchase_number, start_date, end_date, max_price, "
 								  "currency, procurer_reg_num, finance_source_id, delivery_term) "
 								  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (purchase_number) "
