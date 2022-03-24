@@ -59,74 +59,37 @@ def etl(ftp, coll, update_type, regions=None, regions_start=None, regions_end=No
                     continue
 
                 for name in zip_names:
-                    parse_xml_el(zip_file, name, region_id)  # for electronic auctions
-                  #  parse_xml(zip_file, name, region_id)  # for usual auctions
+                    parse_xml(zip_file, name, region_id)
                 zip_file.close()
 
 
 # print("regions have been downloaded:\n{regions}".format(regions=regions))
 def parse_xml(zip_file, name, region_id):
     try:
-        if name.startswith('fcsNotificationZK'):
+        if name.startswith('fcsNotificationZK')  or name.startswith('fksNotificationZK'):
             xml_file = zip_file.open(name)
             parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}fcsNotificationZK')
-            for event, xml in parsed:
-                if event == 'end':
-                    transform_notifications(xml, region_id)
-                    return
-
-        elif name.startswith('fcsPurchaseProlongationZK'):
-            xml_file = zip_file.open(name)
-            parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}fcsPurchaseProlongationZK')
-            for event, xml in parsed:
-                if event == 'end':
-                    transform_notifications_prolong(xml, region_id)
-                    return
-
-        elif name.startswith('fcsProtocolZKAfterProlong'):
-            xml_file = zip_file.open(name)
-            parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}fcsProtocolZKAfterProlong')
-            for event, xml in parsed:
-                if event == 'end':
-                    transform_protocols(xml, region_id, if_prolong=True)
-                    return
-
-        elif name.startswith('fcsProtocolZK'):
-            xml_file = zip_file.open(name)
-            parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}fcsProtocolZK')
-            for event, xml in parsed:
-                if event == 'end':
-                    transform_protocols(xml, region_id, if_prolong=False)
-                    return
-    except etree.XMLSyntaxError:
-        return
-    except Exception:
-        traceback.print_exc()
-        return
-
-def parse_xml_el(zip_file, name, region_id):
-    try:
-
-        if name.startswith('fcsNotificationZK') or name.startswith('fksNotificationZK'):
-            #  print(name)
-            xml_file = zip_file.open(name)
-            # print(xml_file)
-            parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}epNotificationEZK')
-            #   print(parsed)
-            for event, xml in parsed:
-                #  print(xml, event)
-                if event == 'end':
-                    transform_notifications_el(xml, region_id)
-                    return
+            if parsed:
+                for event, xml in parsed:
+                    if event == 'end':
+                        transform_notifications(xml, region_id)
+                        return
+            else:
+                parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}epNotificationEZK')
+                #   print(parsed)
+                for event, xml in parsed:
+                    #  print(xml, event)
+                    if event == 'end':
+                        transform_notifications_el(xml, region_id)
+                        return
 
         elif name.startswith('epNotificationEZK'):
-          #  print(name)
             xml_file = zip_file.open(name)
             # print(xml_file)
             parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}epNotificationEZK2020')
-        #   print(parsed)
+            #   print(parsed)
             for event, xml in parsed:
-              #  print(xml, event)
+                #  print(xml, event)
                 if event == 'end':
                     transform_notifications_el(xml, region_id)
                     return
@@ -160,7 +123,6 @@ def parse_xml_el(zip_file, name, region_id):
             parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}epProtocolEZK2020FinalPart')
 
             for event, xml in parsed:
-             #   print(event, xml)
                 if event == 'end':
                     transform_protocols_el(xml, region_id, if_prolong=False)
                     return
@@ -170,3 +132,4 @@ def parse_xml_el(zip_file, name, region_id):
     except Exception:
         traceback.print_exc()
         return
+
