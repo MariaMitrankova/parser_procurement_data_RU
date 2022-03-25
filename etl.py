@@ -8,11 +8,25 @@ from utils import *
 from sql import *
 
 
-def etl(ftp, coll, update_type, regions=None, regions_start=None, regions_end=None):
+def etl(ftp, coll, update_type, regions=None, regions_start=None, regions_end=None, years=None, years_start=None, years_end=None):
     """
         regions - list of regions to parse
         regions_start, regions_end - borders that limit list of parsed regions
+        years - years you want to parse
+        years_start, years_end - borders that limit list of parsed years
     """
+
+    if years is None:
+        years = []
+    if not years:
+        if not years_start:
+            years_start = 2014
+        if not regions_end:
+            years_end = 2022
+        years = [y for y in range(years_start, years_end+1)]
+
+    skip_years = [y for y in range(2014, 2023) if y not in years]
+
     ftp.cwd('/fcs_regions')
     if not regions:
         regions = get_regions(ftp, regions_start, regions_end)
@@ -44,11 +58,11 @@ def etl(ftp, coll, update_type, regions=None, regions_start=None, regions_end=No
             ftp.cwd(directory)
 
             for f in tqdm(region_files):
-                if 'protocol_{}_2014'.format(region) in f or 'protocol_{}_2015'.format(region) in f or 'protocol_{}_2016'.format(region) in f or 'protocol_{}_2017'.format(region) in f:  # skip unnecessary years
-                    print(f)
-                    continue
-                if 'notification_{}_2014'.format(region) in f or 'notification_{}_2015'.format(region) in f or 'notification_{}_2016'.format(region) in f or 'notification_{}_2017'.format(region) in f:  # skip unnecessary years
-                    continue
+                for year in skip_years:
+                    if 'protocol_{}_{}'.format(region, year) in f:
+                        continue
+                    if 'notification_{}_{}'.format(region, year) in f:
+                        continue
                 try:
                     zip_file = retr(ftp, f)
                     assert zip_file

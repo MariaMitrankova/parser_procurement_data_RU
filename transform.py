@@ -92,7 +92,7 @@ def transform_notifications(xml, region_id):
 def transform_notifications_el(xml, region_id):
 	document = dict()
 	#print(xml)
-	document['finSource'] = retrieve(xml, './s:notificationInfo/s:customerRequirementsInfo/s:customerRequirementInfo/s:contractConditionsInfo/s:contractExecutionPaymentPlan/s:financingSourcesInfo	/s:financingSource/text()', str)
+	document['finSource'] = retrieve(xml, './s1:notificationInfo/s1:customerRequirementsInfo/s1:customerRequirementInfo/s1:contractConditionsInfo/s1:contractExecutionPaymentPlan/s1:financingSourcesInfo	/s1:financingSource/text()', str)
 	if document['finSource']:
 		document['finSource'].strip().strip('.').lower()
 	document['finSource'] = truncate_text(document['finSource'], 1000)
@@ -102,25 +102,24 @@ def transform_notifications_el(xml, region_id):
 	except psycopg2.IntegrityError:
 		fin_id, = one_row_request("SELECT id from finance_sources WHERE source = %s;", [document['finSource']])
 
-	document['procurerRegNum'] = retrieve(xml, './s:purchaseResponsibleInfo/s:responsibleOrgInfo/s:regNum/text()', str)
-	document['procurerName'] = retrieve(xml, './s:purchaseResponsibleInfo/s:responsibleOrgInfo/s:fullName/text()', str)
+	document['procurerRegNum'] = retrieve(xml, './s1:purchaseResponsibleInfo/s1:responsibleOrgInfo/s1:regNum/text()', str)
+	document['procurerName'] = retrieve(xml, './s1:purchaseResponsibleInfo/s1:responsibleOrgInfo/s1:fullName/text()', str)
 	document['procurerName'] = truncate_text(document['procurerName'], 1000)
-	document['procurerINN'] = retrieve(xml, './s:purchaseResponsibleInfo/s:responsibleOrgInfo/s:INN/text()', str)
+	document['procurerINN'] = retrieve(xml, './s1:purchaseResponsibleInfo/s1:responsibleOrgInfo/s1:INN/text()', str)
 	no_return_command("INSERT INTO procurers (reg_num, INN, name) VALUES (%s, %s, %s) ON CONFLICT (reg_num) "
 					  "DO NOTHING;", [document['procurerRegNum'], document['procurerINN'], document['procurerName']])
 
-	document['purchaseNumber'] = retrieve(xml, './s:commonInfo/s:purchaseNumber/text()', str)
-	document['startDate'] = retrieve(xml, './s:notificationInfo/s:procedureInfo/s:collectingInfo/s:startDT/text()', parse_datetime)
-	document['endDate'] = retrieve(xml, './s:notificationInfo/s:procedureInfo/s:collectingInfo/s:endDT/text()', parse_datetime)
-	document['maxPrice'] = retrieve(xml, './s:notificationInfo/s:contractConditionsInfo/s:maxPriceInfo/s:maxPrice/text()', lambda x: round(float(x), 2))
-	document['currency'] = retrieve(xml, './s:notificationInfo/s:contractConditionsInfo/s:maxPriceInfo/s:currency/ns4:code/text()', str)
-	
-	document['deliveryTerm'] = retrieve(xml, './s:notificationInfo/s:customerRequirementsInfo/s:customerRequirementInfo/s:contractConditionsInfo')
-	document['deliveryTerm'] = retrieve(document['deliveryTerm'], './s:deliveryTerm/text()', str)
+	document['purchaseNumber'] = retrieve(xml, './s1:commonInfo/s1:purchaseNumber/text()', str)
+	document['startDate'] = retrieve(xml, './s1:notificationInfo/s1:procedureInfo/s1:collectingInfo/s1:startDT/text()', parse_datetime)
+	document['endDate'] = retrieve(xml, './s1:notificationInfo/s1:procedureInfo/s1:collectingInfo/s1:endDT/text()', parse_datetime)
+	document['maxPrice'] = retrieve(xml, './s1:notificationInfo/s1:contractConditionsInfo/s1:maxPriceInfo/s1:maxPrice/text()', lambda x: round(float(x), 2))
+	document['currency'] = retrieve(xml, './s1:notificationInfo/s1:contractConditionsInfo/s1:maxPriceInfo/s1:currency/ns4:code/text()', str)
+
+	document['deliveryTerm'] = retrieve(xml, './s1:notificationInfo/s1:customerRequirementsInfo/s1:customerRequirementInfo/s1:contractConditionsInfo')
+	document['deliveryTerm'] = retrieve(document['deliveryTerm'], './s1:deliveryTerm/text()', str)
 	document['deliveryTerm'] = truncate_text(document['deliveryTerm'], 200)
 	document['electronic'] = True
-	document['object'] = retrieve(xml, './s:commonInfo/s:purchaseObjectInfo/text()', str)
-
+	document['object'] = retrieve(xml, './s1:commonInfo/s1:purchaseObjectInfo/text()', str)
 	auction_id, = one_row_request("INSERT INTO auctions (region_id, purchase_number, start_date, end_date, max_price, "
 								  "currency, procurer_reg_num, finance_source_id, delivery_term) "
 								  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) ON CONFLICT (purchase_number) "
@@ -133,7 +132,7 @@ def transform_notifications_el(xml, region_id):
 								   document['maxPrice'], document['currency'], document['procurerRegNum'], fin_id,
 								   document['deliveryTerm'], document['electronic']], if_commit=True)  # index out of range
 
-	if retrieve(xml, './s:notificationInfo/s:purchaseObjectsInfo/ns3:drugPurchaseObjectInfo'):
+	if retrieve(xml, './s1:notificationInfo/s1:purchaseObjectsInfo/ns3:drugPurchaseObjectInfo'):
 		objects = [['00', '00', '00', '000']]
 		obj_names = ['Drugs']
 		if_okpd2 = [False]
@@ -141,14 +140,14 @@ def transform_notifications_el(xml, region_id):
 		objects = []
 		obj_names = []
 		if_okpd2 = []
-	for obj_xml in xml.xpath('./s:notificationInfo/s:purchaseObjectsInfo/s:notDrugPurchaseObjectsInfo/ns3:purchaseObject', namespaces=ns()):
+	for obj_xml in xml.xpath('./s1:notificationInfo/s1:purchaseObjectsInfo/s1:notDrugPurchaseObjectsInfo/ns3:purchaseObject', namespaces=ns()):
 		okpd2_code = retrieve(obj_xml, './ns3:OKPD2/ns4:OKPDCode/text()', str)
 		if okpd2_code is not None:
 			okpd2_name = retrieve(obj_xml, './ns3:OKPD2/ns4:OKPDName/text()', str)
 			if_okpd2.append(True)
 		else:
-			okpd2_code = retrieve(obj_xml, './s:OKPD/s:OKPDCode/text()', str)
-			okpd2_name = retrieve(obj_xml, './s:OKPD/s:OKPDName/text()', str)
+			okpd2_code = retrieve(obj_xml, './s1:OKPD/s1:OKPDCode/text()', str)
+			okpd2_name = retrieve(obj_xml, './s1:OKPD/s1:OKPDName/text()', str)
 			if_okpd2.append(False)
 		if okpd2_code is not None:
 			objects.append(okpd2_code)
@@ -220,9 +219,8 @@ def transform_protocols(xml, region_id, if_prolong=False):
 
 
 def transform_protocols_el(xml, region_id, if_prolong=False):
-	purchase_number = retrieve(xml, './s:commonInfo/s:purchaseNumber/text()', str)
-	#print(purchase_number)
-	n_commission_members = len(xml.xpath('./s:protocolInfo/s:commissionInfo/ns3:commissionMembers/ns3:commissionMember', namespaces=ns()))
+	purchase_number = retrieve(xml, './s1:commonInfo/s1:purchaseNumber/text()', str)
+	n_commission_members = len(xml.xpath('./s1:protocolInfo/s1:commissionInfo/ns3:commissionMembers/ns3:commissionMember', namespaces=ns()))
 	auction_id, = one_row_request("INSERT INTO auctions (region_id, purchase_number, n_commission_members) "
 								  "VALUES (%s, %s, %s) ON CONFLICT (purchase_number) DO UPDATE "
 								  "SET n_commission_members = %s RETURNING id;",
@@ -230,37 +228,37 @@ def transform_protocols_el(xml, region_id, if_prolong=False):
 								  if_commit=True)
 
 	coord = {}
-	for i, application_xml in enumerate(xml.xpath('./s:protocolInfo/s:applicationsInfo/s:applicationInfo', namespaces=ns())):
-		bid_price = retrieve(application_xml, './s:finalPrice/text()', lambda x: round(float(x), 2))
-		bid_time = retrieve(application_xml, './s:commonInfo/s:appDT/text()', parse_datetime)
-		appNumber = retrieve(application_xml, './s:commonInfo/s:appNumber/text()', str)
+	for i, application_xml in enumerate(xml.xpath('./s1:protocolInfo/s1:applicationsInfo/s1:applicationInfo', namespaces=ns())):
+		bid_price = retrieve(application_xml, './s1:finalPrice/text()', lambda x: round(float(x), 2))
+		bid_time = retrieve(application_xml, './s1:commonInfo/s1:appDT/text()', parse_datetime)
+		appNumber = retrieve(application_xml, './s1:commonInfo/s1:appNumber/text()', str)
 
 
-		correspondences = application_xml.xpath('./s:commonInfo/s:admissionResultsInfo/s:admissionResultInfo', namespaces=ns())
+		correspondences = application_xml.xpath('./s1:commonInfo/s1:admissionResultsInfo/s1:admissionResultInfo', namespaces=ns())
 		if i == 0:
 			is_approved = parse_correspondences(auction_id, correspondences)
 
 		else:
 			is_approved = True
 			for correspondence in correspondences:
-				compatible = True if retrieve(correspondence, './s:admitted/text()', str) == 'true' else False
+				compatible = True if retrieve(correspondence, './s1:admitted/text()', str) == 'true' else False
 				if not compatible:
 					is_approved = False
 					break
 
 		coord[appNumber] = {'bid_price': bid_price, 'bid_time':bid_time, 'is_approved': is_approved}
 
-	for i, application_xml in enumerate(xml.xpath('./s:appParticipantsInfo/s:appParticipantInfo', namespaces=ns())):
-		app_number = retrieve(application_xml, './s:appNumber/text()', str)
-		part_inn = retrieve(application_xml, './s:participantInfo/ns3:legalEntityRFInfo/ns3:INN/text()', str)
-		part_name = retrieve(application_xml, './s:participantInfo/ns3:legalEntityRFInfo/ns3:fullName/text()', str)
+	for i, application_xml in enumerate(xml.xpath('./s1:appParticipantsInfo/s1:appParticipantInfo', namespaces=ns())):
+		app_number = retrieve(application_xml, './s1:appNumber/text()', str)
+		part_inn = retrieve(application_xml, './s1:participantInfo/ns3:legalEntityRFInfo/ns3:INN/text()', str)
+		part_name = retrieve(application_xml, './s1:participantInfo/ns3:legalEntityRFInfo/ns3:fullName/text()', str)
 		if not part_inn:
-			part_inn = retrieve(application_xml, './s:participantInfo/ns3:individualPersonRFInfo/ns3:INN/text()',
+			part_inn = retrieve(application_xml, './s1:participantInfo/ns3:individualPersonRFInfo/ns3:INN/text()',
 								str)
 
 		if not part_name:
 			part_name = retrieve(application_xml,
-								 './s: p	articipantInfo/ns3:individualPersonRFInfo/ns3:nameInfo/ns3:lastName/text()',
+								 './s1:participantInfo/ns3:individualPersonRFInfo/ns3:nameInfo/ns3:lastName/text()',
 								 str)
 		part_name = truncate_text(part_name, 1000)
 

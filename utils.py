@@ -19,7 +19,8 @@ def ns():  # XML namespace
 		'ns3' : 'http://zakupki.gov.ru/oos/common/1',
 		'ns4' : 'http://zakupki.gov.ru/oos/base/1',
 		'exp': 'http://zakupki.gov.ru/oos/export/1',
-		's': 'http://zakupki.gov.ru/oos/EPtypes/1',
+		's': 'http://zakupki.gov.ru/oos/types/1',
+		's1': 'http://zakupki.gov.ru/oos/EPtypes/1',
 		'int': 'http://zakupki.gov.ru/oos/integration/1',
 		'print': 'http://zakupki.gov.ru/oos/printform/1'
 	}

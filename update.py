@@ -30,7 +30,7 @@ if __name__ == '__main__':
 		[t.start() for t in threads]
 		[t.join() for t in threads]
 
-		etl(ftp, coll, args.type, regions_start=60)  # , regions=['Neneckij_AO'], regions_start=0, regions_end=86
+		etl(ftp, coll, args.type)  # , regions=['Neneckij_AO'], regions_start=0, regions_end=86, years=['2014'], years_start=2014, years_end= 2022
 		ftp.close()
 
 
