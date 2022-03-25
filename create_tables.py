@@ -47,7 +47,7 @@ def create_tables():
 			prolong_date TIMESTAMP,
 			n_commission_members SMALLINT,
 			finance_source_id INT REFERENCES finance_sources (id) ON DELETE RESTRICT ON UPDATE CASCADE,
-			delivery_term VARCHAR(200)
+			delivery_term VARCHAR(200),
 			electronic BOOLEAN DEFAULT False
 	)""",  # general info about auctions; if prolong_date is NULL then auction was not prolonged
 	"""
