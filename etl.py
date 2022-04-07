@@ -132,10 +132,11 @@ def parse_xml(zip_file, name, region_id):
                     transform_protocols(xml, region_id, if_prolong=False)
                     return
 
-        elif name.startswith('epProtocolEZK2020FinalPart') or name.startswith('fcsProtocolPRO_'):
+        elif name.startswith('epProtocolEZK2020FinalPart') or name.startswith('fcsProtocolPRO_') or name.startswith('epProtocolEZK2'):
             xml_file = zip_file.open(name)
             parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}epProtocolEZK2020FinalPart')
-
+            if not parsed:
+                parsed = etree.iterparse(xml_file, tag='{http://zakupki.gov.ru/oos/export/1}epProtocolEZK2')
             for event, xml in parsed:
                 if event == 'end':
                     transform_protocols_el(xml, region_id, if_prolong=False)
